@@ -1,0 +1,58 @@
+# Binaries & build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+*.out
+*.a
+*.o
+*.lo
+*.la
+*.mod
+*.sum
+*.test
+*.prof
+
+# Go Modules & Dependencies
+vendor/
+go.sum
+go.work
+go.work.sum
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# Logs & Temporary files
+*.log
+*.tmp
+*.swp
+*.swo
+*.swn
+
+# IDE & Editor settings
+.idea/
+.vscode/
+*.iml
+*.sublime-workspace
+*.sublime-project
+
+# Env files (DO NOT COMMIT SECRETS)
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env.example
+
+# Database dumps & data
+data/
+*.sqlite
+*.db
+*.sql
+pg_data/
+
+# Git ignores itself
+.git/
