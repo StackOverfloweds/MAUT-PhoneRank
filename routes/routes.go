@@ -15,7 +15,8 @@ func SetupRoutes(app *fiber.App) {
 	authRoutes.Post("/verify-otp", auth.VerifyOTP)
 	authRoutes.Post("/logout", auth.Logout)
 
-	// Protected Routes (Require JWT)
-	api := app.Group("/api", middleware.JWTMiddleware())
-	api.Put("/profile", user.UpdateProfile)
+	//make routes for profile
+	userProf := app.Group("/user", middleware.JWTMiddleware())
+	userProf.Put("/profile", user.UpdateProfile)
+
 }

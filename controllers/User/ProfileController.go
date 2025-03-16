@@ -15,7 +15,10 @@ The user ID is extracted from the request context (`c.Locals("user_id")`).
 If the profile is not found, it returns a 404 error.
 */
 func GetProfile(c *fiber.Ctx) error {
-	userID := c.Locals("user_id").(uint)
+	userID, ok := c.Locals("user_id").(string)
+	if !ok {
+		return c.Status(401).JSON(fiber.Map{"error": "Invalid user ID"})
+	}
 
 	var profile models.Profile
 	if err := database.DB.Where("user_id = ?", userID).First(&profile).Error; err != nil {
