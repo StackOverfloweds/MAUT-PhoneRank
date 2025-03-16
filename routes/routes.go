@@ -8,10 +8,12 @@ import (
 )
 
 func SetupRoutes(app *fiber.App) {
-	// Public Routes
-	app.Post("/register", auth.Register)
-	app.Post("/login", auth.Login)
-	app.Post("/logout", auth.Logout)
+	// routes for authentication
+	authRoutes := app.Group("/auth")
+	authRoutes.Post("/register", auth.Register)
+	authRoutes.Post("/login", auth.Login)
+	authRoutes.Post("/verify-otp", auth.VerifyOTP)
+	authRoutes.Post("/logout", auth.Logout)
 
 	// Protected Routes (Require JWT)
 	api := app.Group("/api", middleware.JWTMiddleware())

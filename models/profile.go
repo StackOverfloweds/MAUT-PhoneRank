@@ -13,7 +13,7 @@ type Profile struct {
 	UserID      string     `gorm:"unique;not null" json:"user_id"`
 	FullName    string     `gorm:"not null" json:"full_name"`
 	Address     *string    `json:"address,omitempty"`                                                                      // Nullable
-	PhoneNumber *string    `gorm:"unique" json:"phone_number,omitempty"`                                                   // Nullable
+	BackupPhone *string    `gorm:"unique" json:"backup_phone,omitempty"`                                                   // Nullable (Backup Phone Number)
 	Birthdate   *time.Time `json:"birthdate,omitempty"`                                                                    // Nullable
 	Gender      *string    `gorm:"type:varchar(10);check:(gender IN ('Male', 'Female', 'Other'))" json:"gender,omitempty"` // Nullable
 	CreatedAt   time.Time  `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
