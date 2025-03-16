@@ -1,12 +1,22 @@
 package routes
 
 import (
-	"github.com/StackOverfloweds/MAUT-PhoneRank/controllers"
+	auth "github.com/StackOverfloweds/MAUT-PhoneRank/controllers/Auth"
+	user "github.com/StackOverfloweds/MAUT-PhoneRank/controllers/User"
+	"github.com/StackOverfloweds/MAUT-PhoneRank/middleware"
 	"github.com/gofiber/fiber/v2"
 )
 
 func SetupRoutes(app *fiber.App) {
-	api := app.Group("/api")
-	api.Get("/smartphone", controllers.GetSmartphone)
-	api.Post("/smarthone", controllers.CreateSmartphone)
+	// routes for authentication
+	authRoutes := app.Group("/auth")
+	authRoutes.Post("/register", auth.Register)
+	authRoutes.Post("/login", auth.Login)
+	authRoutes.Post("/verify-otp", auth.VerifyOTP)
+	authRoutes.Post("/logout", auth.Logout)
+
+	//make routes for profile
+	userProf := app.Group("/user", middleware.JWTMiddleware())
+	userProf.Put("/profile", user.UpdateProfile)
+
 }

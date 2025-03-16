@@ -23,4 +23,8 @@ func ConnectDB() {
 
 	DB = db
 	fmt.Println("Database connected successfully!")
+
+	MigrateDB(db)
+
+	ImportSmartphones(db)
 }
