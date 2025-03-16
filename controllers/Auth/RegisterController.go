@@ -4,38 +4,35 @@ import (
 	"github.com/StackOverfloweds/MAUT-PhoneRank/database"
 	"github.com/StackOverfloweds/MAUT-PhoneRank/models"
 	"github.com/gofiber/fiber/v2"
-	"golang.org/x/crypto/bcrypt"
 )
 
+/*
+Register - Handles user registration.
+This function accepts a JSON request containing username, full name, and phone number.
+It checks if the username or phone number is already taken.
+If the user is new, it creates both a User and a Profile in the database.
+The role is automatically set to "user" (cannot be changed during registration).
+*/
 func Register(c *fiber.Ctx) error {
 	var input struct {
 		Username string `json:"username"`
-		Email    string `json:"email"`
-		Password string `json:"password"`
 		FullName string `json:"full_name"`
+		Phone    string `json:"phone"`
 	}
 
 	if err := c.BodyParser(&input); err != nil {
-		return c.Status(400).JSON(fiber.Map{"Error": "Invalid request body"})
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request body"})
 	}
 
-	//  check if the username already exists
 	var existingUser models.User
-	if database.DB.Where("username = ? OR email = ?", input.Username, input.Email).First(&existingUser).RowsAffected > 0 {
-		return c.Status(400).JSON(fiber.Map{"error": "Username or email already taken"})
+	if database.DB.Where("username = ? OR phone = ?", input.Username, input.Phone).First(&existingUser).RowsAffected > 0 {
+		return c.Status(400).JSON(fiber.Map{"error": "Username or phone number already taken"})
 	}
 
-	hashPass, err := bcrypt.GenerateFromPassword([]byte(input.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return c.Status(500).JSON(fiber.Map{"error": "Failed to hash password"})
-	}
-
-	//create user
 	user := models.User{
-		Username:     input.Username,
-		Email:        input.Email,
-		PasswordHash: string(hashPass),
-		Role:         "user",
+		Username: input.Username,
+		Phone:    input.Phone,
+		Role:     "user",
 	}
 
 	if err := database.DB.Create(&user).Error; err != nil {
@@ -46,7 +43,7 @@ func Register(c *fiber.Ctx) error {
 		UserID:   user.ID,
 		FullName: input.FullName,
 	}
-	// Save Profile to Database
+
 	if err := database.DB.Create(&profile).Error; err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to create profile"})
 	}
@@ -54,5 +51,4 @@ func Register(c *fiber.Ctx) error {
 	return c.JSON(fiber.Map{
 		"message": "User created successfully",
 	})
-
 }

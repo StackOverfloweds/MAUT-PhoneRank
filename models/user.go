@@ -7,18 +7,23 @@ import (
 	"gorm.io/gorm"
 )
 
-// User table for authentication
+/*
+User - Represents a user in the system.
+This model is used for phone authentication.
+It includes a unique username, phone number, role, and creation timestamp.
+*/
 type User struct {
-	ID           string    `gorm:"type:uuid;primaryKey" json:"id"`
-	Username     string    `gorm:"unique;not null" json:"username"`
-	Email        string    `gorm:"unique;not null" json:"email"`
-	PasswordHash string    `gorm:"not null" json:"-"` // Hide password in JSON response
-	Role         string    `gorm:"default:user" json:"role"`
-	CreatedAt    time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
-	Profile      Profile   `gorm:"foreignKey:UserID" json:"profile"`
+	ID        string    `gorm:"type:uuid;primaryKey" json:"id"`
+	Username  string    `gorm:"unique;not null" json:"username"`
+	Phone     string    `gorm:"unique;not null" json:"phone"`
+	Role      string    `gorm:"type:varchar(20);default:'user'" json:"role"` // Default role: "user"
+	CreatedAt time.Time `gorm:"default:CURRENT_TIMESTAMP" json:"created_at"`
 }
 
-// Auto-generate UUID before creating a new user
+/*
+BeforeCreate - Automatically generates a UUID before creating a new user.
+This ensures each user has a unique identifier.
+*/
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 	u.ID = uuid.New().String()
 	return
