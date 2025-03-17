@@ -49,7 +49,7 @@ func SendOTP(phoneNumber string, otp string) error {
 			"target":  phoneNumber,
 			"message": fmt.Sprintf("Your verification code is: %s", otp),
 		}).
-		Post("https://api.fonnte.com/send")
+		Post(os.Getenv("API_URL"))
 
 	if err != nil {
 		return fmt.Errorf("failed to send OTP request: %w", err)
