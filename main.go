@@ -10,18 +10,21 @@ import (
 )
 
 func main() {
+	// Load environment variables
 	if err := godotenv.Load(); err != nil {
-		log.Println("No. Env file Found")
+		log.Println("No .env file found")
 	}
 
-	// setup db con
 	database.ConnectDB()
 
 	app := fiber.New()
 
+	app.Use(func(c *fiber.Ctx) error {
+		c.Locals("db", database.DB)
+		return c.Next()
+	})
+
 	routes.SetupRoutes(app)
 
-	// start server
 	log.Fatal(app.Listen(":3000"))
-
 }
