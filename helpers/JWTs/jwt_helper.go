@@ -1,4 +1,4 @@
-package helpers
+package jwts
 
 import (
 	"crypto/rand"

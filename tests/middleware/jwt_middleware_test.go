@@ -7,7 +7,8 @@ import (
 	"net/http/httptest"
 	"time"
 
-	"github.com/StackOverfloweds/MAUT-PhoneRank/helpers"
+	jwts "github.com/StackOverfloweds/MAUT-PhoneRank/helpers/JWTs"
+
 	"github.com/StackOverfloweds/MAUT-PhoneRank/middleware"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -20,7 +21,7 @@ It ensures that the request passes authentication and extracts user info.
 */
 func TestJWTMiddleware_ValidToken(t *testing.T) {
 	// Retrieve the correct JWT secret
-	secret := helpers.GetJWTSecret() // ✅ Ensures correct secret is used for signing & validation
+	secret := jwts.GetJWTSecret() // ✅ Ensures correct secret is used for signing & validation
 
 	// Generate valid token
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{

@@ -1,4 +1,4 @@
-package database
+package migrate
 
 import (
 	"github.com/StackOverfloweds/MAUT-PhoneRank/models"

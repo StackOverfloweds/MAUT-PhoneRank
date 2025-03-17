@@ -5,6 +5,9 @@ import (
 	"log"
 	"os"
 
+	migrate "github.com/StackOverfloweds/MAUT-PhoneRank/database/Migrate"
+	csv "github.com/StackOverfloweds/MAUT-PhoneRank/database/csv"
+
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -24,7 +27,7 @@ func ConnectDB() {
 	DB = db
 	fmt.Println("Database connected successfully!")
 
-	MigrateDB(db)
+	migrate.MigrateDB(db)
 
-	ImportSmartphones(db)
+	csv.ImportSmartphones(db)
 }
