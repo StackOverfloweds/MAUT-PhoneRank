@@ -10,8 +10,8 @@ import (
 )
 
 /*
-SearchSmartphone - Filters `getSmartphone` based on user criteria.
-It correctly references the related `Brand`, `Processor`, etc.
+SearchSmartphoneWithMAUT - Filters smartphones based on user input,
+then applies MAUT ranking to determine the best choices.
 
 Request Body (JSON):
 
@@ -23,10 +23,9 @@ Request Body (JSON):
 	}
 
 Returns:
-  - A JSON list of smartphones matching the filters.
+  - A ranked list of smartphones based on MAUT analysis.
 */
-func SearchSmartphone(c *fiber.Ctx) error {
-	// Define input struct
+func SearchSmartphoneWithMAUT(c *fiber.Ctx) error {
 	type SearchRequest struct {
 		Brand    string  `json:"brand,omitempty"`
 		MinPrice float64 `json:"min_price,omitempty"`
@@ -36,12 +35,10 @@ func SearchSmartphone(c *fiber.Ctx) error {
 
 	var req SearchRequest
 
-	// Parse JSON request
 	if err := c.BodyParser(&req); err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid JSON input"})
 	}
 
-	// Initialize GORM query
 	query := database.DB.
 		Preload("Brand").
 		Preload("Processor").
@@ -49,7 +46,6 @@ func SearchSmartphone(c *fiber.Ctx) error {
 		Preload("Display").
 		Preload("Camera")
 
-	// Apply filters based on the request
 	if req.Brand != "" {
 		query = query.Joins("JOIN brands ON brands.id = smartphones.brand_id").
 			Where("LOWER(brands.name) = LOWER(?)", req.Brand)
@@ -64,49 +60,47 @@ func SearchSmartphone(c *fiber.Ctx) error {
 		query = query.Where("ram_capacity >= ?", req.MinRAM)
 	}
 
-	// Log the query for debugging
-	fmt.Println("Executing query:", query.Debug().Statement.SQL.String())
+	fmt.Println("Executing query:", query.Statement.SQL.String())
 
-	// Execute the query
 	var smartphones []models.Smartphone
 	if err := query.Find(&smartphones).Error; err != nil {
 		fmt.Println("Database error:", err)
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch smartphones"})
 	}
 
-	// Return the filtered smartphones
-	return c.JSON(smartphones)
-}
+	if len(smartphones) == 0 {
+		fmt.Println("⚠️ No smartphones found matching criteria")
+		return c.Status(404).JSON(fiber.Map{"error": "No smartphones found matching criteria"})
+	}
 
-/*
-CalculateMAUT - Processes the MAUT (Multi-Attribute Utility Theory) calculation for smartphones.
-This function determines the best smartphone based on predefined criteria weights.
-
-Process:
-  - Retrieves all smartphone data from the database.
-  - Calculates the minimum and maximum values for each attribute.
-  - Normalizes the data using MAUT normalization.
-  - Computes the utility score for each smartphone.
-  - Sorts smartphones from highest to lowest utility score.
-
-Returns:
-  - A JSON list of smartphones ranked by their MAUT utility score.
-*/
-func CalculateMAUT(c *fiber.Ctx) error {
-	var smartphones []models.Smartphone
-	database.DB.Preload("Processor").Preload("Camera").Find(&smartphones)
+	fmt.Printf("✅ Found %d smartphones, applying MAUT...\n", len(smartphones))
 
 	minMaxValues := maut.GetMinMaxValues(smartphones)
 
 	weights := map[string]float64{
-		"price":  0.3,
-		"ram":    0.4,
-		"camera": 0.3,
+		"processor": 0.25,
+		"ram":       0.25,
+		"price":     0.2,
+		"rear_cam":  0.15,
+		"front_cam": 0.15,
+	}
+
+	totalWeight := 0.0
+	for _, weight := range weights {
+		totalWeight += weight
+	}
+	if totalWeight != 1.0 {
+		fmt.Println("⚠️ Weights do not sum to 1.0, normalizing weights...")
+		for key := range weights {
+			weights[key] /= totalWeight
+		}
 	}
 
 	maut.CalculateUtility(smartphones, minMaxValues, weights)
 
 	maut.SortSmartphonesByScore(smartphones)
+
+	fmt.Println("✅ MAUT ranking completed")
 
 	return c.Status(200).JSON(smartphones)
 }
