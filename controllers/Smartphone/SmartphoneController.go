@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/StackOverfloweds/MAUT-PhoneRank/database"
+	img "github.com/StackOverfloweds/MAUT-PhoneRank/helpers/Image"
 	maut "github.com/StackOverfloweds/MAUT-PhoneRank/helpers/MAUT"
 	"github.com/StackOverfloweds/MAUT-PhoneRank/models"
 	"github.com/gofiber/fiber/v2"
@@ -60,8 +61,6 @@ func SearchSmartphoneWithMAUT(c *fiber.Ctx) error {
 		query = query.Where("ram_capacity >= ?", req.MinRAM)
 	}
 
-	fmt.Println("Executing query:", query.Statement.SQL.String())
-
 	var smartphones []models.Smartphone
 	if err := query.Find(&smartphones).Error; err != nil {
 		fmt.Println("Database error:", err)
@@ -73,7 +72,9 @@ func SearchSmartphoneWithMAUT(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"error": "No smartphones found matching criteria"})
 	}
 
-	fmt.Printf("✅ Found %d smartphones, applying MAUT...\n", len(smartphones))
+	/*
+		Calculation using MAUT
+	*/
 
 	minMaxValues := maut.GetMinMaxValues(smartphones)
 
@@ -90,7 +91,6 @@ func SearchSmartphoneWithMAUT(c *fiber.Ctx) error {
 		totalWeight += weight
 	}
 	if totalWeight != 1.0 {
-		fmt.Println("⚠️ Weights do not sum to 1.0, normalizing weights...")
 		for key := range weights {
 			weights[key] /= totalWeight
 		}
@@ -100,9 +100,24 @@ func SearchSmartphoneWithMAUT(c *fiber.Ctx) error {
 
 	maut.SortSmartphonesByScore(smartphones)
 
-	fmt.Println("✅ MAUT ranking completed")
+	var smartphoneDetails []fiber.Map
 
-	return c.Status(200).JSON(smartphones)
+	for _, phone := range smartphones {
+		imageURL, err := img.SearchSmartphoneImage(phone.Brand.Name, phone.Model)
+		if err != nil {
+			imageURL = ""
+		}
+
+		// Append each smartphone's data with image
+		smartphoneDetails = append(smartphoneDetails, fiber.Map{
+			"smartphone": phone,
+			"image_url":  imageURL,
+		})
+	}
+
+	fmt.Println("MAUT ranking completed")
+
+	return c.Status(200).JSON(smartphoneDetails)
 }
 
 /*
@@ -128,5 +143,13 @@ func GetSmartphoneDetail(c *fiber.Ctx) error {
 		return c.Status(404).JSON(fiber.Map{"error": "Smartphone not found"})
 	}
 
-	return c.JSON(smartphone)
+	imageURL, err := img.SearchSmartphoneImage(smartphone.Brand.Name, smartphone.Model)
+	if err != nil {
+		imageURL = ""
+	}
+
+	return c.JSON(fiber.Map{
+		"smartphone": smartphone,
+		"image_url":  imageURL,
+	})
 }
