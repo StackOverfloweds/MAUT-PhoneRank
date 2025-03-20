@@ -4,7 +4,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/StackOverfloweds/MAUT-PhoneRank/helpers"
+	jwts "github.com/StackOverfloweds/MAUT-PhoneRank/helpers/JWTs"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +15,7 @@ func TestGetJWTSecret_Existing(t *testing.T) {
 	expectedSecret := "test_secret"
 	os.Setenv("JWT_SECRET", expectedSecret)
 
-	secret := helpers.GetJWTSecret()
+	secret := jwts.GetJWTSecret()
 	assert.Equal(t, expectedSecret, string(secret))
 }
 
@@ -25,6 +25,6 @@ TestGetJWTSecret_Generated - Ensures that GetJWTSecret generates a new key if no
 func TestGetJWTSecret_Generated(t *testing.T) {
 	os.Unsetenv("JWT_SECRET")
 
-	secret := helpers.GetJWTSecret()
+	secret := jwts.GetJWTSecret()
 	assert.NotEmpty(t, secret)
 }

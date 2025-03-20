@@ -3,7 +3,7 @@ package middleware
 import (
 	"strings"
 
-	"github.com/StackOverfloweds/MAUT-PhoneRank/helpers"
+	jwts "github.com/StackOverfloweds/MAUT-PhoneRank/helpers/JWTs"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 )
@@ -31,7 +31,7 @@ func JWTMiddleware() fiber.Handler {
 
 		// Parse the JWT token
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return helpers.GetJWTSecret(), nil
+			return jwts.GetJWTSecret(), nil
 		})
 
 		if err != nil || !token.Valid {

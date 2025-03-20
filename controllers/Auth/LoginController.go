@@ -5,6 +5,7 @@ import (
 
 	"github.com/StackOverfloweds/MAUT-PhoneRank/database"
 	"github.com/StackOverfloweds/MAUT-PhoneRank/helpers"
+	jwts "github.com/StackOverfloweds/MAUT-PhoneRank/helpers/JWTs"
 	"github.com/StackOverfloweds/MAUT-PhoneRank/models"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
@@ -73,7 +74,7 @@ func VerifyOTP(c *fiber.Ctx) error {
 		"exp":     time.Now().Add(24 * time.Hour).Unix(), // Expire in 24 hours
 	})
 
-	tokenString, err := token.SignedString(helpers.GetJWTSecret())
+	tokenString, err := token.SignedString(jwts.GetJWTSecret())
 	if err != nil {
 		return c.Status(500).JSON(fiber.Map{"error": "Failed to generate token"})
 	}
