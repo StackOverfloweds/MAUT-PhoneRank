@@ -2,6 +2,11 @@ package smartphone
 
 import (
 	"fmt"
+	"math/rand"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
 
 	"github.com/StackOverfloweds/MAUT-PhoneRank/database"
 	img "github.com/StackOverfloweds/MAUT-PhoneRank/helpers/Image"
@@ -144,7 +149,8 @@ func GetSmartphoneDetail(c *fiber.Ctx) error {
 	}
 
 	imageURL, err := img.SearchSmartphoneImage(smartphone.Brand.Name, smartphone.Model)
-	if err != nil {
+
+	if err != nil || imageURL == "" || strings.Contains(imageURL, "No+Image") {
 		imageURL = ""
 	}
 
@@ -152,4 +158,82 @@ func GetSmartphoneDetail(c *fiber.Ctx) error {
 		"smartphone": smartphone,
 		"image_url":  imageURL,
 	})
+}
+
+func GetAllSmartphones(c *fiber.Ctx) error {
+	var smartphones []models.Smartphone
+
+	var totalCount int64
+	if err := database.DB.Model(&models.Smartphone{}).Count(&totalCount).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to count smartphones"})
+	}
+
+	limit, err := strconv.Atoi(c.Query("limit", "30"))
+	if err != nil || limit < 1 {
+		limit = 30
+	}
+
+	if limit > int(totalCount) {
+		limit = int(totalCount)
+	}
+
+	offset := 0
+	if totalCount > int64(limit) {
+		rand.Seed(time.Now().UnixNano()) // Seed random
+		offset = rand.Intn(int(totalCount) - limit + 1)
+	}
+
+	if err := database.DB.
+		Preload("Brand").
+		Preload("Processor").
+		Preload("Battery").
+		Preload("Display").
+		Preload("Camera").
+		Offset(offset).
+		Limit(limit).
+		Find(&smartphones).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch smartphones"})
+	}
+
+	if len(smartphones) == 0 {
+		return c.Status(404).JSON(fiber.Map{"error": "No smartphones found"})
+	}
+
+	type result struct {
+		Phone    models.Smartphone
+		ImageURL string
+	}
+
+	results := make([]result, len(smartphones))
+	var wg sync.WaitGroup
+	wg.Add(len(smartphones))
+
+	for i, phone := range smartphones {
+		go func(i int, phone models.Smartphone) {
+			defer wg.Done()
+			imageURL, err := img.SearchSmartphoneImage(phone.Brand.Name, phone.Model)
+			if err != nil {
+				imageURL = ""
+			}
+			results[i] = result{Phone: phone, ImageURL: imageURL}
+		}(i, phone)
+	}
+
+	wg.Wait()
+
+	var smartphoneDetails []fiber.Map
+	for _, res := range results {
+		if res.ImageURL != "" {
+			smartphoneDetails = append(smartphoneDetails, fiber.Map{
+				"smartphone": res.Phone,
+				"image_url":  res.ImageURL,
+			})
+		}
+	}
+	// If no smartphones have valid ImageURLs, return an error
+	if len(smartphoneDetails) == 0 {
+		return c.Status(404).JSON(fiber.Map{"error": "No smartphones with valid images found"})
+	}
+
+	return c.Status(200).JSON(smartphoneDetails)
 }
