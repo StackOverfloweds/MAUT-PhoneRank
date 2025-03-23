@@ -36,20 +36,24 @@ func SetupRoutes(app *fiber.App) {
 	authRoutes.Post("/verify-otp", auth.VerifyOTP)
 	authRoutes.Post("/logout", auth.Logout)
 
-	//make routes for profile
+	// make routes for profile
 	userProf := app.Group("/user", middleware.JWTMiddleware())
 	userProf.Put("/profile", user.UpdateProfile)
 
-	// routes for smartphone
+	// routes for smartphone (tanpa middleware)
 	smartphoneRoutes := app.Group("/smartphone")
 	smartphoneRoutes.Get("/", Smartphone.GetAllSmartphones)
-	smartphoneRoutes.Get("/:id", Smartphone.GetSmartphoneDetail)
-	smartphoneRoutes.Post("/search-maut", Smartphone.SearchSmartphoneWithMAUT)
+
+	// routes for smartphone (dengan middleware JWT)
+	smartphoneRoutesProtected := app.Group("/smartphone", middleware.JWTMiddleware())
+	smartphoneRoutesProtected.Get("/:id", Smartphone.GetSmartphoneDetail)
+	smartphoneRoutesProtected.Post("/search-maut", Smartphone.SearchSmartphoneWithMAUT)
+
 	// Routes for brands
 	brandRoutes := app.Group("/brands")
 	brandRoutes.Get("/name", brand.GetAllBrand)
 
+	// Routes for exporting data
 	exportRoutes := app.Group("/export")
 	exportRoutes.Get("/smartphone", exports.ExportJSONSmartphone)
-
 }
