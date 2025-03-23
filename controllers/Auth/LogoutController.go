@@ -26,5 +26,5 @@ func Logout(c *fiber.Ctx) error {
 		return c.Status(400).JSON(fiber.Map{"error": "Invalid Authorization header format"})
 	}
 
-	return c.JSON(fiber.Map{"message": "Logout successful. Please remove the token on the client side."})
+	return c.Status(200).JSON(fiber.Map{"message": "Logout successful. Please remove the token on the client side."})
 }
