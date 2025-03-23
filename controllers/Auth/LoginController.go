@@ -80,8 +80,10 @@ func VerifyOTP(c *fiber.Ctx) error {
 	}
 
 	return c.JSON(fiber.Map{
-		"message": "OTP verification successful!",
-		"token":   tokenString,
-		"role":    user.Role,
+		"message":   "OTP verification successful!",
+		"token":     tokenString,
+		"role":      user.Role,
+		"user_name": user.Username,
+		"user_id":   user.ID,
 	})
 }
