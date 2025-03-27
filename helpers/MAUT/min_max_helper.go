@@ -12,8 +12,7 @@ func GetMinMaxValues(smartphones []models.Smartphone) map[string]float64 {
 		"minProcessor": math.MaxFloat64, "maxProcessor": 0,
 		"minRAM": math.MaxFloat64, "maxRAM": 0,
 		"minPrice": math.MaxFloat64, "maxPrice": 0,
-		"minRearCam": math.MaxFloat64, "maxRearCam": 0,
-		"minFrontCam": math.MaxFloat64, "maxFrontCam": 0,
+		"minDisplay": math.MaxFloat64, "maxDisplay": 0,
 	}
 
 	for _, s := range smartphones {
@@ -41,20 +40,12 @@ func GetMinMaxValues(smartphones []models.Smartphone) map[string]float64 {
 			minMax["maxPrice"] = s.Price
 		}
 
-		// Rear Camera
-		if s.Camera.PrimaryCameraRear < minMax["minRearCam"] {
-			minMax["minRearCam"] = s.Camera.PrimaryCameraRear
+		// Display
+		if float64(s.Display.RefreshRate) < minMax["minDisplay"] {
+			minMax["minDisplay"] = float64(s.Display.RefreshRate)
 		}
-		if s.Camera.PrimaryCameraRear > minMax["maxRearCam"] {
-			minMax["maxRearCam"] = s.Camera.PrimaryCameraRear
-		}
-
-		// Front Camera
-		if s.Camera.PrimaryCameraFront < minMax["minFrontCam"] {
-			minMax["minFrontCam"] = s.Camera.PrimaryCameraFront
-		}
-		if s.Camera.PrimaryCameraFront > minMax["maxFrontCam"] {
-			minMax["maxFrontCam"] = s.Camera.PrimaryCameraFront
+		if float64(s.Display.RefreshRate) > minMax["maxDisplay"] {
+			minMax["maxDisplay"] = float64(s.Display.RefreshRate)
 		}
 	}
 

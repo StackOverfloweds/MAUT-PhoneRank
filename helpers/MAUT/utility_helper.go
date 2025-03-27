@@ -1,6 +1,7 @@
 package maut
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/StackOverfloweds/MAUT-PhoneRank/models"
@@ -31,19 +32,19 @@ func CalculateUtility(smartphones []models.Smartphone, minMax map[string]float64
 		normalizedProcessor := NormalizeValue(s.Processor.Speed, minMax["minProcessor"], minMax["maxProcessor"])
 		normalizedRAM := NormalizeValue(float64(s.RAMCapacity), minMax["minRAM"], minMax["maxRAM"])
 		normalizedPrice := NormalizeValue(minMax["maxPrice"]-s.Price, minMax["minPrice"], minMax["maxPrice"]) // Lower price is better
-		normalizedRearCam := NormalizeValue(s.Camera.PrimaryCameraRear, minMax["minRearCam"], minMax["maxRearCam"])
-		normalizedFrontCam := NormalizeValue(s.Camera.PrimaryCameraFront, minMax["minFrontCam"], minMax["maxFrontCam"])
+		normalizedDisplay := NormalizeValue(float64(s.Display.RefreshRate), minMax["minDisplay"], minMax["maxDisplay"])
 
 		// Compute utility score
 		score := (weights["processor"] * normalizedProcessor) +
 			(weights["ram"] * normalizedRAM) +
 			(weights["price"] * normalizedPrice) +
-			(weights["rear_cam"] * normalizedRearCam) +
-			(weights["front_cam"] * normalizedFrontCam)
+			(weights["display"] * normalizedDisplay)
 
 		// Store the MAUT score (rounded to 3 decimals)
 		utilityScores[s.ID] = math.Round(score*1000) / 1000
+
 	}
+	fmt.Println("Utility Score : ", utilityScores)
 
 	return utilityScores
 }

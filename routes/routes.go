@@ -50,7 +50,7 @@ func SetupRoutes(app *fiber.App) {
 	smartphoneRoutesProtected.Post("/search-maut", Smartphone.SearchSmartphoneWithMAUT)
 
 	// Routes for brands
-	brandRoutes := app.Group("/brands")
+	brandRoutes := app.Group("/brands", middleware.JWTMiddleware())
 	brandRoutes.Get("/name", brand.GetAllBrand)
 
 	// Routes for exporting data
