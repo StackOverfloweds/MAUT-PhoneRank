@@ -87,8 +87,7 @@ func SearchSmartphoneWithMAUT(c *fiber.Ctx) error {
 		"processor": 0.25,
 		"ram":       0.25,
 		"price":     0.2,
-		"rear_cam":  0.15,
-		"front_cam": 0.15,
+		"display":   0.3,
 	}
 
 	totalWeight := 0.0
