@@ -1,0 +1,70 @@
+package admin
+
+import (
+	"github.com/StackOverfloweds/MAUT-PhoneRank/database"
+	"github.com/StackOverfloweds/MAUT-PhoneRank/models"
+	"github.com/gofiber/fiber/v2"
+)
+
+func CreateSmartphone(c *fiber.Ctx) error {
+	var smartphone models.Smartphone
+	if err := c.BodyParser(&smartphone); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	if err := database.DB.Create(&smartphone).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to create smartphone"})
+	}
+
+	return c.JSON(fiber.Map{"message": "Smartphone created", "data": smartphone})
+}
+
+func GetAllSmartphones(c *fiber.Ctx) error {
+	var smartphones []models.Smartphone
+	if err := database.DB.Find(&smartphones).Error; err != nil {
+		return c.Status(500).JSON(fiber.Map{"error": "Failed to fetch smartphones"})
+	}
+
+	return c.JSON(smartphones)
+}
+
+func GetSmartphoneByID(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var smartphone models.Smartphone
+	if err := database.DB.First(&smartphone, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "Smartphone not found"})
+	}
+
+	return c.JSON(smartphone)
+}
+
+func UpdateSmartphone(c *fiber.Ctx) error {
+	id := c.Params("id")
+	var smartphone models.Smartphone
+	if err := database.DB.First(&smartphone, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "Smartphone not found"})
+	}
+
+	var input models.Smartphone
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid request"})
+	}
+
+	database.DB.Model(&smartphone).Updates(input)
+	return c.JSON(fiber.Map{"message": "Smartphone updated", "data": smartphone})
+}
+
+func DeleteSmartphone(c *fiber.Ctx) error {
+	id := c.Params("id")
+	if err := database.DB.Delete(&models.Smartphone{}, id).Error; err != nil {
+		return c.Status(404).JSON(fiber.Map{"error": "Smartphone not found or failed to delete"})
+	}
+
+	return c.JSON(fiber.Map{"message": "Smartphone deleted"})
+}
+
+
+
+change the code to create one by one by create the brand first and then battery and then processor and then display and camera and after that create the smartphone for get the id 
+
+get the value from body input user 

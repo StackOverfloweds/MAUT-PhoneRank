@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 
+	admin "github.com/StackOverfloweds/MAUT-PhoneRank/controllers/Admin"
 	auth "github.com/StackOverfloweds/MAUT-PhoneRank/controllers/Auth"
 	brand "github.com/StackOverfloweds/MAUT-PhoneRank/controllers/Brand"
 	Smartphone "github.com/StackOverfloweds/MAUT-PhoneRank/controllers/Smartphone"
@@ -56,4 +57,16 @@ func SetupRoutes(app *fiber.App) {
 	// Routes for exporting data
 	exportRoutes := app.Group("/export")
 	exportRoutes.Get("/smartphone", exports.ExportJSONSmartphone)
+
+	// // Routes For Admin
+	adminRoutes := app.Group("/admin", middleware.JWTMiddleware(), middleware.CheckAdmin())
+
+	adminSmartphone := adminRoutes.Group("/phone")
+	adminSmartphone.Post("/", admin.CreateSmartphone)
+	adminSmartphone.Put("/:id", admin.UpdateSmartphone)
+	adminSmartphone.Delete("/:id", admin.DeleteSmartphone)
+
+	//dummy create
+	dummyCreate := app.Group("/dummy")
+	dummyCreate.Post("/create", admin.CreateSmartphone)
 }
