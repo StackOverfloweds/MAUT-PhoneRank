@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/StackOverfloweds/MAUT-PhoneRank/database"
+	img "github.com/StackOverfloweds/MAUT-PhoneRank/helpers/Image"
 	"github.com/StackOverfloweds/MAUT-PhoneRank/models"
 	"github.com/gofiber/fiber/v2"
 	"gorm.io/gorm"
@@ -407,4 +408,67 @@ func DeleteSmartphone(c *fiber.Ctx) error {
 	db.Delete(&models.Processor{}, "id = ?", smartphone.ProcessorID)
 
 	return c.JSON(fiber.Map{"message": "Smartphone berhasil dihapus"})
+}
+
+func SearchSmartphone(c *fiber.Ctx) error {
+	// Define a struct to bind the request body
+	type SearchRequest struct {
+		Brand string `json:"brand,omitempty"`
+		Model string `json:"model"`
+	}
+
+	// Bind request body to struct
+	var request SearchRequest
+	if err := c.BodyParser(&request); err != nil {
+		return c.Status(400).JSON(fiber.Map{"error": "Invalid JSON input"})
+	}
+
+	// Query smartphone based on brand and model
+	var smartphones []models.Smartphone
+	tx := database.DB.Preload("Display").Preload("Battery").Preload("Camera").Preload("Processor").Preload("Brand")
+
+	// Apply filter based on brand if provided (case-insensitive comparison)
+	if request.Brand != "" {
+		tx = tx.Joins("JOIN brands ON smartphones.brand_id = brands.id").
+			Where("LOWER(brands.name) LIKE LOWER(?)", "%"+request.Brand+"%")
+	}
+
+	// Apply filter based on model if provided (case-insensitive comparison)
+	if request.Model != "" {
+		tx = tx.Where("LOWER(smartphones.model) LIKE LOWER(?)", "%"+request.Model+"%")
+	}
+
+	// Retrieve smartphones based on the filter
+	if err := tx.Find(&smartphones).Error; err != nil {
+		log.Println("Error fetching smartphones:", err)
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"error": "Error fetching smartphones",
+		})
+	}
+
+	// If no smartphones are found
+	if len(smartphones) == 0 {
+		return c.Status(fiber.StatusNotFound).JSON(fiber.Map{
+			"message": "No smartphones found matching the criteria",
+		})
+	}
+
+	var img_detail []fiber.Map
+	for _, phone := range smartphones {
+		imageURL, err := img.SearchSmartphoneImage(phone.Brand.Name, phone.Model)
+		if err != nil {
+			imageURL = ""
+		}
+
+		// Append each smartphone's data with image URL
+		img_detail = append(img_detail, fiber.Map{
+			"image_url": imageURL,
+		})
+	}
+	// Return response with smartphones and their image URLs
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{
+		"message":     "Smartphones found",
+		"smartphones": smartphones,
+		"img_url":     img_detail,
+	})
 }

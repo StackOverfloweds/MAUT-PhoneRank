@@ -65,8 +65,11 @@ func SetupRoutes(app *fiber.App) {
 	adminSmartphone.Post("/", admin.CreateSmartphone)
 	adminSmartphone.Put("/:id", admin.UpdateSmartphone)
 	adminSmartphone.Delete("/:id", admin.DeleteSmartphone)
+	adminSmartphone.Post("/search", admin.SearchSmartphone)
 
 	//dummy create
 	dummyCreate := app.Group("/dummy")
 	dummyCreate.Post("/create", admin.CreateSmartphone)
+	dummyCreate.Post("/search", admin.SearchSmartphone)
+
 }
